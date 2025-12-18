@@ -1,0 +1,5 @@
+[theme]
+base="light"              # o "dark"
+primaryColor="#77191eff"
+textColor="#000000"
+font="sans serif"         # serif | monospace
