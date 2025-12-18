@@ -4,6 +4,23 @@ from datetime import datetime
 from pathlib import Path
 from database import get_connection
 
+##
+
+from pathlib import Path
+import os
+import streamlit as st
+from database import DB_PATH, get_connection
+
+st.write("CWD:", os.getcwd())
+st.write("DB_PATH:", str(DB_PATH), "exists:", Path(DB_PATH).exists())
+
+conn = get_connection()
+st.write("PRAGMA database_list:", conn.execute("PRAGMA database_list").fetchall())
+st.write("Tables:", conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall())
+conn.close()
+
+##
+
 # ---------------------------------
 # CONFIGURACIÓN DE LA PÁGINA
 # ---------------------------------
@@ -396,3 +413,4 @@ elif transaccion == "Transferencia":
 
     else:
         st.info("No hay productos agregados aún.")
+
