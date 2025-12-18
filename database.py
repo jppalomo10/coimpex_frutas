@@ -1,9 +1,11 @@
 import sqlite3
+from pathlib import Path
 
-DB_NAME = "db.sqlite"
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "db.sqlite"
 
 def get_connection():
-    return sqlite3.connect(DB_NAME, check_same_thread=False)
+    return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 def crear_tablas():
     conn = get_connection()
@@ -47,3 +49,4 @@ def crear_tablas():
 
     conn.commit()
     conn.close()
+
