@@ -1,5 +1,5 @@
 import streamlit as st
-from database import crear_tablas
+from db import run_query
 
 st.set_page_config(
     page_title="COIMPEX S.A.",
@@ -14,4 +14,7 @@ Bienvenido a la aplicación.
 Selecciona una sección desde el menú lateral.
 """)
 
+st.subheader("Estado de la base de datos")
 
+row = run_query("select now() as ahora;", fetch="one")
+st.write("Conectado ✅", row["ahora"])
