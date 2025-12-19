@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from db import run_query
 
+
 st.set_page_config(
     page_title="Movimientos de Inventario",
     layout="centered",
@@ -59,6 +60,12 @@ if transaccion == 1: # Venta
         pago = c4.selectbox("Forma de Pago", [""])
 
     bodega = st.selectbox("Punto de venta", ["", "Roosevelt", "Predio Z11"])
+
+    c5, c6 = st.columns(2)
+
+    estado = c5.selectbox("Estado de la venta", ["", "Pagada", "Pendiente de pago"])
+    factura = c6.checkbox("Necesita Factura")
+
     opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes}
 
     with st.expander("Crear nuevo Cliente"):
@@ -81,10 +88,12 @@ if transaccion == 1: # Venta
 elif transaccion == 2: # Compra
 
     c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
     
     fecha = c1.date_input("Fecha de la compra", value=datetime.now())
     envio = c2.text_input("No. Envío")
-    bodega = st.selectbox("Punto de venta", ["", "Roosevelt", "Predio Z11"])
+    bodega = c3.selectbox("Punto de venta", ["", "Roosevelt", "Predio Z11"])
+    estado = c4.selectbox("Estado de la compra", ["", "En tránsito", "En Bodega"])
     opciones_proveedores = {None: ""} | {p["id_proveedor"]: p["nombre"] for p in proveedores}
 
     observaciones = st.text_area("Observaciones")
@@ -202,22 +211,22 @@ if c1.button("💾 Guardar"):
     if transaccion == 1 or transaccion == 2: # Venta o Compra
         
         if transaccion == 1:
-            row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, tipo_venta, metodo_pago, bodega_origen, id_cliente, total, observaciones) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (fecha, envio, transaccion, tipo, pago, bodega, cliente, total, observaciones), fetch="one")
+            row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, tipo_venta, metodo_pago, bodega_origen, id_cliente, total, observaciones, estado, factura) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_transaccion", (fecha, envio, int(transaccion), tipo, pago, bodega, int(cliente), float(total), observaciones, estado, bool(factura)), fetch="one")
         
         if transaccion == 2:
-            row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, bodega_destino, id_proveedor, total, observaciones) VALUES (%s, %s, %s, %s, %s, %s, %s)", (fecha, envio, transaccion, bodega, proveedor, total, observaciones), fetch="one")
+            row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, bodega_destino, id_proveedor, total, observaciones, estado) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id_transaccion", (fecha, envio, int(transaccion), bodega, int(proveedor), float(total), observaciones, estado), fetch="one")
 
         id_transaccion = row["id_transaccion"]
 
         for item in st.session_state.carrito:
-            run_query("INSERT INTO detalles (id_transaccion, fecha, sku, nombre, cantidad, precio, subtotal) VALUES (%s, %s, %s, %s, %s, %s, %s)", (id_transaccion, fecha, item["sku"], item["nombre"], item["cantidad"], item["precio"], item["subtotal"]), fetch="none")
+            run_query("INSERT INTO detalles (id_transaccion, fecha, sku, cantidad, precio, subtotal) VALUES (%s, %s, %s, %s, %s, %s)", (id_transaccion, fecha, str(item["sku"]), int(item["cantidad"]), float(item["precio"]), float(item["subtotal"]), fetch="none")
 
     if transaccion == 3: # Transferencia
-        row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, bodega_origen, bodega_destino, total, observaciones) VALUES (%s, %s, %s, %s, %s, %s, %s)", (fecha, envio, transaccion, bodega_entrada, bodega_salida, total, observaciones), fetch="one")
+        row = run_query("INSERT INTO encabezados (fecha, no_envio, transaccion, bodega_origen, bodega_destino, total, observaciones) VALUES (%s, %s, %s, %s, %s, %s, %s)", (fecha, envio, int(transaccion), bodega_entrada, bodega_salida, float(total), observaciones), fetch="one")
         id_transaccion = row["id_transaccion"]
 
         for item in st.session_state.carrito:
-            run_query("INSERT INTO detalles (id_transaccion, fecha, sku, cantidad) VALUES (%s, %s, %s, %s)", (id_transaccion, fecha, item["sku"], item["cantidad"]), fetch="none")    
+            run_query("INSERT INTO detalles (id_transaccion, fecha, sku, cantidad) VALUES (%s, %s, %s, %s)", (id_transaccion, fecha, str(item["sku"]), int(item["cantidad"]), fetch="none")    
 
     st.success("Transacción guardada exitosamente")
     
