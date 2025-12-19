@@ -2,7 +2,6 @@ import streamlit as st
 import psycopg2
 import psycopg2.extras
 
-@st.cache_resource
 def get_conn():
     # Lee la URL desde secrets
     db_url = st.secrets["DATABASE_URL"]
@@ -32,5 +31,6 @@ def run_query(query: str, params=None, fetch: str = "all"):
 
     finally:
         pass
+
 
 
