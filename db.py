@@ -1,5 +1,5 @@
 import streamlit as st
-import psycopg2
+import psycopg2-binary
 import psycopg2.extras
 
 @st.cache_resource
@@ -32,3 +32,4 @@ def run_query(query: str, params=None, fetch: str = "all"):
 
     finally:
         pass
+
