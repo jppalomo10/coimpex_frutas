@@ -237,3 +237,5 @@ if c2.button("🧹 Vaciar detalle"):
 if c3.button("🗑️ Quitar último producto"):
     st.session_state.carrito.pop()
     st.rerun()
+
+st.write("Recargar página para reiniciar el formulario")
