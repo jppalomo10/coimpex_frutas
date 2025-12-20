@@ -76,8 +76,17 @@ if transaccion == 1: # Venta
         correo = st.text_input("Correo")
         direccion = st.text_input("Dirección")
 
+        nombre_normalizado = nombre.strip().lower()
+        existe = any(
+            c["nombre"].strip().lower() == nombre_normalizado
+            for c in clientes
+        )
+
+        if existe:
+            st.error("El cliente ya existe")
+
         if st.button("Guardar Cliente"):
-            if nombre in clientes:
+            if existe:
                 st.error("El cliente ya existe")
             else:
                 run_query("INSERT INTO clientes (nombre, nit, telefono, email, direccion) VALUES (%s, %s, %s, %s, %s)", (nombre, nit, telefono, correo, direccion), fetch="none")
@@ -107,8 +116,17 @@ elif transaccion == 2: # Compra
         telefono = st.text_input("Teléfono")
         correo = st.text_input("Correo")
 
+        nombre_normalizado = nombre.strip().lower()
+        existe = any(
+            p["nombre"].strip().lower() == nombre_normalizado
+            for p in proveedores
+        )
+
+        if existe:
+            st.error("Ya existe un proveedor con este nombre")
+
         if st.button("Guardar Proveedor"):
-            if nombre in proveedores:
+            if nombre_normalizado in proveedores:
                 st.error("El proveedor ya existe")
             else:
                 run_query("INSERT INTO proveedores (nombre, telefono, email) VALUES (%s, %s, %s)", (nombre, telefono, correo), fetch="none")
