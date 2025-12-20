@@ -77,8 +77,11 @@ if transaccion == 1: # Venta
         direccion = st.text_input("Dirección")
 
         if st.button("Guardar Cliente"):
-            run_query("INSERT INTO clientes (nombre, nit, telefono, email, direccion) VALUES (%s, %s, %s, %s, %s)", (nombre, nit, telefono, correo, direccion), fetch="none")
-            st.success("Cliente guardado exitosamente")
+            if nombre in clientes:
+                st.error("El cliente ya existe")
+            else:
+                run_query("INSERT INTO clientes (nombre, nit, telefono, email, direccion) VALUES (%s, %s, %s, %s, %s)", (nombre, nit, telefono, correo, direccion), fetch="none")
+                st.success("Cliente guardado exitosamente")
 
     cliente = st.selectbox("Cliente", opciones_clientes, format_func=lambda x: opciones_clientes[x])
 
@@ -105,8 +108,11 @@ elif transaccion == 2: # Compra
         correo = st.text_input("Correo")
 
         if st.button("Guardar Proveedor"):
-            run_query("INSERT INTO proveedores (nombre, telefono, email) VALUES (%s, %s, %s)", (nombre, telefono, correo), fetch="none")
-            st.success("Proveedor guardado exitosamente")
+            if nombre in proveedores:
+                st.error("El proveedor ya existe")
+            else:
+                run_query("INSERT INTO proveedores (nombre, telefono, email) VALUES (%s, %s, %s)", (nombre, telefono, correo), fetch="none")
+                st.success("Proveedor guardado exitosamente")
 
     proveedor = st.selectbox("Proveedor", opciones_proveedores, format_func=lambda x: opciones_proveedores[x])
     
@@ -221,6 +227,7 @@ if c1.button("💾 Guardar"):
     st.success("Transacción guardada exitosamente")
 
     st.session_state.carrito = []
+    st.rerun()
     
 if c2.button("🧹 Vaciar detalle"):
     st.session_state.carrito = []
