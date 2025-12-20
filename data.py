@@ -6,6 +6,7 @@ productos = {
     "G163": "Manzana Gala 163",
     "G150": "Manzana Gala 150",
     "G175": "Manzana Gala 175",
+    "G198": "Manzana Gala 198",
     "M113": "Manzana Roja 113",
     "M150": "Manzana Roja 150",
     "M163": "Manzana Roja 163",
