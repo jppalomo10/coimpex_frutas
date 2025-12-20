@@ -221,7 +221,6 @@ if c1.button("💾 Guardar"):
     st.success("Transacción guardada exitosamente")
 
     st.session_state.carrito = []
-    st.rerun()
     
 if c2.button("🧹 Vaciar detalle"):
     st.session_state.carrito = []
