@@ -16,10 +16,10 @@ st.title("Estado de Cuenta")
 
 opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes}
 
-c1, c2, c3, c4 = st.columns(4)
+c1, c2 = st.columns(2)
 
 cliente = c1.selectbox("Cliente", opciones_clientes, format_func=lambda x: opciones_clientes[x])
-estado = c3.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pagada", "Pendiente de pago"])
+estado = c2.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pagada", "Pendiente de pago", "Pagada parcialmente"])
 
 result = run_query(
     """
@@ -47,7 +47,7 @@ result = run_query(
 df = pd.DataFrame(result)
 
 if df.empty:
-    st.write("No hay datos")
+    st.warning("No hay datos")
 else:
     if estado:
         df = df[df["estado"].isin(estado)]
@@ -102,3 +102,39 @@ else:
         file_name=f"estado_cuenta_{cliente_nombre}.pdf",
         mime="application/pdf"
     )
+
+    st.divider()
+
+    st.subheader("Actualizar Transacción")
+
+    transacciones = df["id_transaccion"].unique()
+
+    c1, c2 = st.columns(2)
+    id_transaccion = c1.selectbox("ID de Transacción", ["", *transacciones])
+
+    if id_transaccion != "":
+        df_actualizar = df[df["id_transaccion"] == id_transaccion]
+        df_actualizar = df_actualizar[["fecha", "id_transaccion", "producto", "cantidad", "precio", "subtotal", "estado"]]
+
+        st.dataframe(df_actualizar, width="stretch", column_config={
+            "fecha": "Fecha",
+            "id_transaccion": "ID",
+            "producto": "Producto",
+            "cantidad": "Cantidad",
+            "precio": "Precio Unitario",
+            "subtotal": "Subtotal",
+            "estado": "Estado"
+        })
+
+        nuevo_estado = c2.selectbox("Nuevo Estado", ["", "Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"])
+        observaciones = st.text_area("Observaciones")
+
+        c3, c4, c5 = st.columns(3)
+
+        c3.info(f"Estado actual: {df_actualizar['estado'].iloc[0]}")
+        c4.success(f"Nuevo estado: {nuevo_estado}")
+
+        if c5.button("Actualizar", width="stretch", icon="🔄"):
+            run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
+            st.success("Transacción actualizada exitosamente")
+            st.rerun()
