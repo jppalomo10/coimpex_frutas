@@ -43,9 +43,15 @@ def generar_estado_cuenta_pdf(df, cliente_nombre, total_comprado, total_pagado, 
     # Título
     elementos.append(Paragraph("<b>Estado de Cuenta</b>", styles["Title"]))
     elementos.append(Paragraph(f"<b>Cliente:</b> {cliente_nombre}", styles["Normal"]))
+
+    # Fecha
+    elementos.append(Paragraph(f"<b>Fecha Inicial:</b> {df['fecha'].min()}", styles["Normal"]))
+    elementos.append(Paragraph(f"<b>Fecha Final:</b> {df['fecha'].max()}", styles["Normal"]))
+    
     elementos.append(Paragraph("", styles["Normal"]))
 
-    
+    elementos.append(Spacer(1, 12))
+
     # Tabla
     tabla_data = [
         ["Fecha", "ID", "Producto", "Cantidad", "Precio", "Subtotal", "Estado"]
@@ -75,7 +81,7 @@ def generar_estado_cuenta_pdf(df, cliente_nombre, total_comprado, total_pagado, 
     elementos.append(Paragraph("<br/>", styles["Normal"]))
 
     # Totales
-    elementos.append(Spacer(1, 20))
+    elementos.append(Spacer(1, 12))
     elementos.append(Paragraph(f"<b>Total Comprado:</b> Q {total_comprado:,.2f}", styles["Normal"]))
     elementos.append(Paragraph(f"<b>Total Pagado:</b> Q {total_pagado:,.2f}", styles["Normal"]))
     elementos.append(Paragraph(f"<b>Total Pendiente:</b> Q {total_pendiente:,.2f}", styles["Normal"]))
