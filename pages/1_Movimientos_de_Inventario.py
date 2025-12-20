@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from db import run_query
+from data import productos, bodegas
 
 
 st.set_page_config(
@@ -59,11 +60,11 @@ if transaccion == 1: # Venta
     else:
         pago = c4.selectbox("Forma de Pago", [""])
 
-    bodega = st.selectbox("Punto de venta", ["", "Roosevelt", "Predio Z11"])
+    bodega = st.selectbox("Punto de venta", ["", *bodegas])
 
     c5, c6 = st.columns(2)
 
-    estado = c5.selectbox("Estado de la venta", ["", "Pagada", "Pendiente de pago"])
+    estado = c5.selectbox("Estado de la venta", ["", "Pagada", "Pendiente de pago", "Anulada"])
     factura = c6.checkbox("Necesita Factura")
 
     opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes}
@@ -92,7 +93,7 @@ elif transaccion == 2: # Compra
     
     fecha = c1.date_input("Fecha de la compra", value=datetime.now())
     envio = c2.text_input("No. Envío")
-    bodega = c3.selectbox("Punto de venta", ["", "Roosevelt", "Predio Z11"])
+    bodega = c3.selectbox("Punto de venta", ["", *bodegas])
     estado = c4.selectbox("Estado de la compra", ["", "En tránsito", "En Bodega"])
     opciones_proveedores = {None: ""} | {p["id_proveedor"]: p["nombre"] for p in proveedores}
 
@@ -114,8 +115,8 @@ elif transaccion == 2: # Compra
 elif transaccion == 3: # Transferencia
     fecha = st.date_input("Fecha de la transferencia", value=datetime.now())
     envio = st.text_input("No. Envío")
-    bodega_entrada = st.selectbox("Bodega de entrada", ["", "Roosevelt", "Predio Z11"])
-    bodega_salida = st.selectbox("Bodega de salida", ["", "Roosevelt", "Predio Z11"])
+    bodega_entrada = st.selectbox("Bodega de entrada", ["", *bodegas])
+    bodega_salida = st.selectbox("Bodega de salida", ["", *bodegas])
     observaciones = st.text_area("Observaciones")
 
 st.divider()
@@ -124,18 +125,7 @@ st.divider()
 # SECCIÓN 3: DETALLE
 ###############################
 
-productos = {
-    "U001": 'Uva Roja "JR" a granel',
-    "U002": 'Uva Verde "Queen of the Valley"',
-    "G163": "Manzana Gala 163",
-    "G150": "Manzana Gala 150",
-    "G175": "Manzana Gala 175",
-    "M113": "Manzana Roja 113",
-    "M150": "Manzana Roja 150",
-    "M163": "Manzana Roja 163",
-    "M175": "Manzana Roja 175",
-    "M198": "Manzana Roja 198"
-}
+
 
 st.subheader("Detalle de la transacción")
 
@@ -229,6 +219,9 @@ if c1.button("💾 Guardar"):
             run_query("INSERT INTO detalles (id_transaccion, fecha, sku, cantidad) VALUES (%s, %s, %s, %s)", (id_transaccion, fecha, str(item["sku"]), int(item["cantidad"])), fetch="none")    
 
     st.success("Transacción guardada exitosamente")
+
+    st.session_state.carrito = []
+    st.rerun()
     
 if c2.button("🧹 Vaciar detalle"):
     st.session_state.carrito = []
