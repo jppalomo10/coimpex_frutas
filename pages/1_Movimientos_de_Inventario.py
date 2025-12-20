@@ -64,7 +64,7 @@ if transaccion == 1: # Venta
 
     c5, c6 = st.columns(2)
 
-    estado = c5.selectbox("Estado de la venta", ["", "Pagada", "Pendiente de pago", "Anulada"])
+    estado = c5.selectbox("Estado de la venta", ["", "Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"])
     factura = c6.checkbox("Necesita Factura")
 
     opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes}

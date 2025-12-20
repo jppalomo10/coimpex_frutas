@@ -19,7 +19,7 @@ opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes
 c1, c2, c3, c4 = st.columns(4)
 
 cliente = c1.selectbox("Cliente", opciones_clientes, format_func=lambda x: opciones_clientes[x])
-estado = c3.multiselect("Estado", ["Pagada", "Pendiente de pago", "Anulada"], default=["Pagada", "Pendiente de pago"])
+estado = c3.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pagada", "Pendiente de pago"])
 
 result = run_query(
     """
