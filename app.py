@@ -1,5 +1,6 @@
 import streamlit as st
 from db import run_query
+from data import productos
 
 st.set_page_config(
     page_title="COIMPEX S.A.",
@@ -46,3 +47,6 @@ inventario = run_query(query_inventario, fetch="all")
 
 st.subheader("Inventario Actual")
 st.dataframe(inventario, use_container_width=True)
+
+st.write(productos)
+
