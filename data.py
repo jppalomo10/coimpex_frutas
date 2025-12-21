@@ -5,6 +5,8 @@ productos = {
     "U004": 'Uva Negra "RAR" sin semilla',
     "U005": 'Uva Roja "UVA VA" a granel',
     "U006": 'Uva Roja "UVA VA" caja de cartón',
+    "U007": 'Uva Roja "RAR" red globe',
+    "U008": 'Uva Roja "Delano Export" red globe',
     "G150": "Manzana Gala 150",
     "G163": "Manzana Gala 163",
     "G175": "Manzana Gala 175",
