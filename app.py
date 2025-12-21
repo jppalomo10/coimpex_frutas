@@ -48,5 +48,6 @@ inventario = run_query(query_inventario, fetch="all")
 st.subheader("Inventario Actual")
 st.dataframe(inventario, use_container_width=True)
 
-st.write(productos)
+st.dataframe(productos)
+
 
