@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from db import run_query
 from data import productos
 
@@ -46,8 +47,17 @@ ORDER BY d.sku;
 inventario = run_query(query_inventario, fetch="all")
 
 st.subheader("Inventario Actual")
-st.dataframe(inventario, use_container_width=True)
 
-st.dataframe(productos)
+inventario = pd.DataFrame(inventario)
+inventario["productos"] = inventario["sku"].map(productos)
+inventario = inventario[["sku", "productos", "entradas", "salidas", "stock_actual"]]
+
+st.dataframe(inventario, width="stretch", column_config={
+    "sku": "SKU",
+    "productos": "Producto",
+    "entradas": "Entradas",
+    "salidas": "Salidas",
+    "stock_actual": "Stock Actual"
+})
 
 
