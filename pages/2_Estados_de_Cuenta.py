@@ -126,8 +126,8 @@ else:
         )
 
         st.dataframe(facturas, width="stretch", column_config={
-                "id_transaccion": "ID Factura",
                 "fecha": "Fecha",
+                "id_transaccion": "ID Factura",
                 "total": "Total",
                 "pagado": "Pagado",
                 "estado": "Estado"
@@ -208,6 +208,7 @@ else:
                 st.rerun()
 
             
+
 
 
 
