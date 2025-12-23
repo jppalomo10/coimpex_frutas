@@ -19,7 +19,7 @@ opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes
 c1, c2 = st.columns(2)
 
 cliente = c1.selectbox("Cliente", opciones_clientes, format_func=lambda x: opciones_clientes[x])
-estado = c2.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pagada", "Pendiente de pago", "Pagada parcialmente"])
+estado = c2.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pendiente de pago", "Pagada parcialmente"])
 
 result = run_query(
     """
@@ -33,7 +33,8 @@ result = run_query(
         d.precio,
         d.subtotal,
         e.total,
-        e.estado
+        e.estado,
+        e.pagado
     FROM clientes c
     JOIN encabezados e ON e.id_cliente = c.id_cliente
     JOIN detalles d ON d.id_transaccion = e.id_transaccion
@@ -75,8 +76,13 @@ else:
         "estado": "Estado"
     })
     
-    total_comprado = df["subtotal"].sum()
-    total_pagado = df[df["estado"] == "Pagada"]["total"].sum()
+    total_comprado = float(df["subtotal"].sum())
+    total_pagado = float((
+        df[["id_transaccion", "pagado"]]
+        .drop_duplicates()
+        ["pagado"]
+        .sum()
+    ))
     total_pendiente = total_comprado - total_pagado
 
     c5, c6, c7 = st.columns(3)
@@ -105,36 +111,97 @@ else:
 
     st.divider()
 
-    st.subheader("Actualizar Transacción")
+    tabs = st.tabs(["Ingresar un pago del cliente", "Actualizar Transacción"])
 
-    transacciones = df["id_transaccion"].unique()
+    with tabs[0]:
+        st.subheader("Ingresar un pago del cliente")
 
-    c1, c2 = st.columns(2)
-    id_transaccion = c1.selectbox("ID de Transacción", ["", *transacciones])
+        c1, c2 = st.columns(2)
+        monto_pagado = c1.number_input("Monto pagado", min_value=0, value=0, step=10)
 
-    if id_transaccion != "":
-        df_actualizar = df[df["id_transaccion"] == id_transaccion]
-        df_actualizar = df_actualizar[["fecha", "id_transaccion", "producto", "cantidad", "precio", "subtotal", "estado"]]
+        facturas = (
+            df[["id_transaccion", "total", "pagado", "estado"]]
+            .drop_duplicates()
+            .sort_values("id_transaccion")
+        )
 
-        st.dataframe(df_actualizar, width="stretch", column_config={
-            "fecha": "Fecha",
-            "id_transaccion": "ID",
-            "producto": "Producto",
-            "cantidad": "Cantidad",
-            "precio": "Precio Unitario",
-            "subtotal": "Subtotal",
-            "estado": "Estado"
-        })
+        st.dataframe(facturas, width="stretch", column_config={
+                "id_transaccion": "ID Factura",
+                "total": "Total",
+                "pagado": "Pagado",
+                "estado": "Estado"
+            })
 
-        nuevo_estado = c2.selectbox("Nuevo Estado", ["", "Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"])
-        observaciones = st.text_area("Observaciones")
+        if c2.button("Ingresar Pago", width="stretch", icon="➕"):
+            for _, row in facturas.iterrows():
+                if monto_pagado <= 0:
+                    break
 
-        c3, c4, c5 = st.columns(3)
+                if row["estado"] == "Pagada" or row["estado"] == "Anulada":
+                    continue
 
-        c3.info(f"Estado actual: {df_actualizar['estado'].iloc[0]}")
-        c4.success(f"Nuevo estado: {nuevo_estado}")
+                pendiente = float(row["total"]) - float(row["pagado"])
 
-        if c5.button("Actualizar", width="stretch", icon="🔄"):
-            run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
-            st.success("Transacción actualizada exitosamente")
+                if monto_pagado >= pendiente:
+                    # Se paga completa
+                    run_query(
+                        """
+                        UPDATE encabezados
+                        SET pagado = %s,
+                            estado = 'Pagada'
+                        WHERE id_transaccion = %s
+                        """,
+                        (row["total"], row["id_transaccion"]),
+                        fetch="none"
+                    )
+                    monto_pagado -= pendiente
+
+                else:
+                    # Se paga parcialmente
+                    run_query(
+                        """
+                        UPDATE encabezados
+                        SET pagado = pagado + %s,
+                            estado = 'Pagada parcialmente'
+                        WHERE id_transaccion = %s
+                        """,
+                        (monto_pagado, row["id_transaccion"]),
+                        fetch="none"
+                    )
+                    monto_pagado = 0
+
             st.rerun()
+                    
+    with tabs[1]:
+        st.subheader("Actualizar Transacción")
+
+        transacciones = df["id_transaccion"].unique()
+
+        c1, c2 = st.columns(2)
+        id_transaccion = c1.selectbox("ID de Transacción", ["", *transacciones])
+
+        if id_transaccion != "":
+            df_actualizar = df[df["id_transaccion"] == id_transaccion]
+            df_actualizar = df_actualizar[["fecha", "producto", "cantidad", "precio", "subtotal", "estado"]]
+
+            st.dataframe(df_actualizar, width="stretch", column_config={
+                "fecha": "Fecha",
+                "producto": "Producto",
+                "cantidad": "Cantidad",
+                "precio": "Precio Unitario",
+                "subtotal": "Subtotal",
+                "estado": "Estado"
+            })
+
+            nuevo_estado = c2.selectbox("Nuevo Estado", ["", "Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"])
+            observaciones = st.text_area("Observaciones")
+
+            c3, c4, c5 = st.columns(3)
+
+            c3.info(f"Estado actual: {df_actualizar['estado'].iloc[0]}")
+            c4.success(f"Nuevo estado: {nuevo_estado}")
+
+            if c5.button("Actualizar", width="stretch", icon="🔄"):
+                run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
+                st.success("Transacción actualizada exitosamente")
+                st.rerun()
