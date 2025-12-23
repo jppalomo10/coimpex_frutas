@@ -120,7 +120,7 @@ else:
         monto_pagado = c1.number_input("Monto pagado", min_value=0, value=0, step=10)
 
         facturas = (
-            df[["id_transaccion", "fecha", "total", "pagado", "estado"]]
+            df[["fecha", "id_transaccion", "total", "pagado", "estado"]]
             .drop_duplicates()
             .sort_values("fecha")
         )
@@ -208,6 +208,7 @@ else:
                 st.rerun()
 
             
+
 
 
 
