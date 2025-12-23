@@ -120,13 +120,14 @@ else:
         monto_pagado = c1.number_input("Monto pagado", min_value=0, value=0, step=10)
 
         facturas = (
-            df[["id_transaccion", "total", "pagado", "estado"]]
+            df[["id_transaccion", "fecha", "total", "pagado", "estado"]]
             .drop_duplicates()
-            .sort_values("id_transaccion")
+            .sort_values("fecha")
         )
 
         st.dataframe(facturas, width="stretch", column_config={
                 "id_transaccion": "ID Factura",
+                "fecha": "Fecha",
                 "total": "Total",
                 "pagado": "Pagado",
                 "estado": "Estado"
@@ -205,3 +206,8 @@ else:
                 run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
                 st.success("Transacción actualizada exitosamente")
                 st.rerun()
+
+            
+
+
+
