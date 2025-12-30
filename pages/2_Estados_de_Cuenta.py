@@ -19,7 +19,7 @@ opciones_clientes = {None: ""} | {c["id_cliente"]: c["nombre"] for c in clientes
 c1, c2 = st.columns(2)
 
 cliente = c1.selectbox("Cliente", opciones_clientes, format_func=lambda x: opciones_clientes[x])
-estado = c2.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pagada", "Pendiente de pago", "Pagada parcialmente"])
+estado = c2.multiselect("Estado", ["Pagada", "Pendiente de pago", "Pagada parcialmente", "Anulada"], default=["Pendiente de pago", "Pagada parcialmente"])
 
 result = run_query(
     """
@@ -28,6 +28,7 @@ result = run_query(
         e.id_transaccion,
         e.fecha,
         e.factura,
+        e.no_envio,
         d.sku,
         d.cantidad,
         d.precio,
@@ -62,19 +63,36 @@ else:
     for col in ["precio", "subtotal", "total"]:
         df[col] = df[col].astype(float)
 
-    df_print = df[["fecha", "id_transaccion", "producto", "cantidad", "precio", "subtotal", "estado"]]
-    df_print["precio"] = df_print["precio"].map(lambda x: f"Q {x:,.2f}")
-    df_print["subtotal"] = df_print["subtotal"].map(lambda x: f"Q {x:,.2f}")
+    tab1, tab2 = st.tabs(["Facturas", "Detalles"])
 
-    st.dataframe(df_print, width="stretch", column_config={
-        "fecha": "Fecha",
-        "id_transaccion": "ID",
-        "producto": "Producto",
-        "cantidad": "Cantidad",
-        "precio": "Precio Unitario",
-        "subtotal": "Subtotal",
-        "estado": "Estado"
-    })
+    with tab1:
+        df_print = df[["fecha", "id_transaccion", "no_envio", "total", "estado"]]
+        df_print["total"] = df_print["total"].map(lambda x: f"Q {x:,.2f}")
+        df_print = df_print.drop_duplicates()
+
+        st.dataframe(df_print, width="stretch", column_config={
+            "fecha": "Fecha",
+            "id_transaccion": "ID",
+            "no_envio": "No. Envio",
+            "total": "Total",
+            "estado": "Estado"
+        })
+
+    with tab2:
+        df_print = df[["fecha", "id_transaccion", "no_envio", "producto", "cantidad", "precio", "subtotal", "estado"]]
+        df_print["precio"] = df_print["precio"].map(lambda x: f"Q {x:,.2f}")
+        df_print["subtotal"] = df_print["subtotal"].map(lambda x: f"Q {x:,.2f}")
+
+        st.dataframe(df_print, width="stretch", column_config={
+            "fecha": "Fecha",
+            "id_transaccion": "ID",
+            "no_envio": "No. Envio",
+            "producto": "Producto",
+            "cantidad": "Cantidad",
+            "precio": "Precio Unitario",
+            "subtotal": "Subtotal",
+            "estado": "Estado"
+        })
     
     total_comprado = float(df["subtotal"].sum())
     total_pagado = float((
@@ -206,8 +224,3 @@ else:
                 run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
                 st.success("Transacción actualizada exitosamente")
                 st.rerun()
-
-            
-
-
-
