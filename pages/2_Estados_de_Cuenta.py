@@ -254,8 +254,14 @@ else:
         df_pagos = pd.DataFrame(pagos)
         df_pagos["fecha"] = pd.to_datetime(df_pagos["fecha"]).dt.strftime("%d/%m/%Y")
         df_pagos["monto_pagado"] = df_pagos["monto_pagado"].map(lambda x: f"Q {x:,.2f}")
+        df_pagos = df_pagos[["fecha", "monto_pagado"]]
         
         st.dataframe(df_pagos, width="stretch", column_config={
             "fecha": "Fecha",
             "monto_pagado": "Monto Pagado"
         })
+    
+            
+
+
+
