@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 from db import run_query
 from data import productos, bodegas, generar_estado_cuenta_pdf
 
@@ -11,6 +12,7 @@ clientes = run_query("SELECT * FROM clientes")
 proveedores = run_query("SELECT * FROM proveedores")
 encabezados = run_query("SELECT * FROM encabezados")
 detalle = run_query("SELECT * FROM detalles")
+pagos = run_query("SELECT * FROM pagos")
 
 st.title("Estado de Cuenta")
 
@@ -136,6 +138,7 @@ else:
 
         c1, c2 = st.columns(2)
         monto_pagado = c1.number_input("Monto pagado", min_value=0, value=0, step=10)
+        fecha_pago = c2.date_input("Fecha del pago", value=datetime.now())
 
         facturas = (
             df[["fecha", "id_transaccion", "total", "pagado", "estado"]]
@@ -152,6 +155,20 @@ else:
             })
 
         if c2.button("Ingresar Pago", width="stretch", icon="➕"):
+
+            if monto_pagado <= 0:
+                st.error("El monto pagado debe ser mayor a 0")
+
+            else:
+                run_query(
+                    """
+                    INSERT INTO pagos (fecha, monto_pagado, id_cliente)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (fecha_pago, monto_pagado, cliente),
+                    fetch="none"
+                )
+
             for _, row in facturas.iterrows():
                 if monto_pagado <= 0:
                     break
@@ -224,3 +241,21 @@ else:
                 run_query("UPDATE encabezados SET estado = %s, observaciones = %s WHERE id_transaccion = %s", (nuevo_estado, observaciones, int(id_transaccion)), fetch="none")
                 st.success("Transacción actualizada exitosamente")
                 st.rerun()
+
+    st.divider()
+    
+    st.subheader("Historial de Pagos")
+
+    pagos = run_query("SELECT * FROM pagos WHERE id_cliente = %s", (cliente,))
+    
+    if not pagos:
+        st.warning("No hay pagos")
+    else:
+        df_pagos = pd.DataFrame(pagos)
+        df_pagos["fecha"] = pd.to_datetime(df_pagos["fecha"]).dt.strftime("%d/%m/%Y")
+        df_pagos["monto_pagado"] = df_pagos["monto_pagado"].map(lambda x: f"Q {x:,.2f}")
+        
+        st.dataframe(df_pagos, width="stretch", column_config={
+            "fecha": "Fecha",
+            "monto_pagado": "Monto Pagado"
+        })
