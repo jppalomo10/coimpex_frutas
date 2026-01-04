@@ -19,7 +19,7 @@ Selecciona una sección desde el menú lateral.
 st.subheader("Estado de la base de datos")
 
 row = run_query("select now() as ahora;", fetch="one")
-st.write("Conectado ✅", row["ahora"])
+st.write("Conexión exitosa ✅", row["ahora"])
 
 clientes = run_query("SELECT * FROM clientes")
 proveedores = run_query("SELECT * FROM proveedores")
