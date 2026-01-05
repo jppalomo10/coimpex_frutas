@@ -40,6 +40,7 @@ SELECT
     ) AS stock_actual
 FROM detalles d
 JOIN encabezados e ON d.id_transaccion = e.id_transaccion
+WHERE e.estado != 'Anulada'
 GROUP BY d.sku
 ORDER BY d.sku;
 """
