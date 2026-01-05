@@ -1,3 +1,5 @@
+
+
 productos = {
     "U001": 'Uva Roja "JR" a granel',
     "U002": 'Uva Verde "Queen of the Valley"',
@@ -103,4 +105,37 @@ def generar_estado_cuenta_pdf(df, cliente_nombre, total_comprado, total_pagado, 
     doc.build(elementos)
     buffer.seek(0)
 
+    return buffer
+
+import io
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+
+def dataframe_to_pdf(df):
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+
+    data = [df.columns.tolist()] + df.values.tolist()
+
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+    ]))
+
+    doc.build([table])
+    buffer.seek(0)
     return buffer

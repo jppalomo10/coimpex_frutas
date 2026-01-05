@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from db import run_query
-from data import productos
+from data import productos, dataframe_to_pdf
+
 
 st.set_page_config(
     page_title="COIMPEX S.A.",
@@ -61,4 +62,12 @@ st.dataframe(inventario, width="stretch", column_config={
     "stock_actual": "Stock Actual"
 })
 
+pdf = dataframe_to_pdf(inventario)
+
+st.download_button(
+    label="📄 Descargar Inventario en PDF",
+    data=pdf,
+    file_name="inventario_actual.pdf",
+    mime="application/pdf"
+)
 

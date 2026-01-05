@@ -1,0 +1,4 @@
+# Streamlit secrets
+.secrets.toml
+secrets.toml
+.streamlit/secrets.toml
