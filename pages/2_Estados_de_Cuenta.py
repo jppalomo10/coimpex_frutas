@@ -96,11 +96,12 @@ else:
             "estado": "Estado"
         })
     
-    total_comprado = float(df["subtotal"].sum())
+    total_comprado = df.loc[df["estado"] != "Anulada", "subtotal"].sum()
     total_pagado = float((
         df[["id_transaccion", "pagado"]]
         .drop_duplicates()
         ["pagado"]
+        .astype(float)
         .sum()
     ))
     total_pendiente = total_comprado - total_pagado
